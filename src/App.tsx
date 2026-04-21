@@ -144,31 +144,39 @@ function formatHoldDuration(dateString: string, language: Language) {
   const now = new Date()
   const created = new Date(dateString)
 
-  let months =
-    (now.getFullYear() - created.getFullYear()) * 12 +
-    (now.getMonth() - created.getMonth())
+  let years = now.getFullYear() - created.getFullYear()
+  let months = now.getMonth() - created.getMonth()
+  let days = now.getDate() - created.getDate()
 
-  if (now.getDate() < created.getDate()) {
+  if (days < 0) {
+    const previousMonthLastDay = new Date(now.getFullYear(), now.getMonth(), 0).getDate()
+    days += previousMonthLastDay
     months -= 1
   }
 
-  if (months < 0) months = 0
+  if (months < 0) {
+    months += 12
+    years -= 1
+  }
 
-  const years = Math.floor(months / 12)
-  const remainingMonths = months % 12
+  if (years < 0) {
+    years = 0
+    months = 0
+    days = 0
+  }
 
   if (language === 'ja') {
     const parts = []
     if (years > 0) parts.push(`${years}年`)
-    if (remainingMonths > 0 || parts.length === 0) parts.push(`${remainingMonths}ヶ月`)
+    if (months > 0) parts.push(`${months}ヶ月`)
+    if (days > 0 || parts.length === 0) parts.push(`${days}日`)
     return `保留 ${parts.join(' ')}`
   }
 
   const parts = []
   if (years > 0) parts.push(`${years} year${years > 1 ? 's' : ''}`)
-  if (remainingMonths > 0 || parts.length === 0) {
-    parts.push(`${remainingMonths} month${remainingMonths > 1 ? 's' : ''}`)
-  }
+  if (months > 0) parts.push(`${months} month${months > 1 ? 's' : ''}`)
+  if (days > 0 || parts.length === 0) parts.push(`${days} day${days > 1 ? 's' : ''}`)
 
   return `On hold for ${parts.join(' ')}`
 }
@@ -183,13 +191,14 @@ function formatDate(dateString: string, language: Language) {
 
 function App() {
   const [language, setLanguage] = useState<Language>('ja')
-  const [posts, setPosts] = useState<Post[]>(samplePosts)
+  const [posts, setPosts] = useState<Post[]>([])
   const [draft, setDraft] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<CategoryKey[]>([])
   const [postToDelete, setPostToDelete] = useState<Post | null>(null)
   const [anonIdHash, setAnonIdHash] = useState<string | null>(null)
   const [authUser, setAuthUser] = useState<User | null>(null)
   const [isUsingFirebase, setIsUsingFirebase] = useState(false)
+  const [isLoadingPosts, setIsLoadingPosts] = useState(true)
 
   useEffect(() => {
     const prepareAnonId = async () => {
@@ -227,8 +236,12 @@ function App() {
 
   useEffect(() => {
     const loadPosts = async () => {
+      setIsLoadingPosts(true)
+
       if (!db || !hasFirebaseEnv) {
+        setPosts(samplePosts)
         setIsUsingFirebase(false)
+        setIsLoadingPosts(false)
         return
       }
 
@@ -254,7 +267,10 @@ function App() {
         setIsUsingFirebase(true)
       } catch (error) {
         console.error('Failed to load posts from Firestore.', error)
+        setPosts(samplePosts)
         setIsUsingFirebase(false)
+      } finally {
+        setIsLoadingPosts(false)
       }
     }
 
@@ -340,6 +356,7 @@ function App() {
         <Route
           element={
             <HomePage
+              isLoadingPosts={isLoadingPosts}
               isUsingFirebase={isUsingFirebase}
               language={language}
               posts={timelinePosts}
@@ -411,12 +428,14 @@ type PageProps = {
 }
 
 function HomePage({
+  isLoadingPosts,
   isUsingFirebase,
   language,
   posts,
   setLanguage,
   t,
 }: PageProps & {
+  isLoadingPosts: boolean
   isUsingFirebase: boolean
   posts: Post[]
   setLanguage: (language: Language) => void
@@ -457,7 +476,7 @@ function HomePage({
       </section>
 
       <section className="timeline" aria-label="Timeline">
-        {posts.length === 0 ? (
+        {isLoadingPosts ? null : posts.length === 0 ? (
           <p className="empty-state">{t.emptyTimeline}</p>
         ) : (
           posts.map((post) => (
