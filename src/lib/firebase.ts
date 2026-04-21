@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase/app'
+import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
@@ -13,6 +14,5 @@ const firebaseConfig = {
 export const hasFirebaseEnv = Object.values(firebaseConfig).every(Boolean)
 
 export const firebaseApp = hasFirebaseEnv ? initializeApp(firebaseConfig) : null
+export const auth = firebaseApp ? getAuth(firebaseApp) : null
 export const db = firebaseApp ? getFirestore(firebaseApp) : null
-
-// Made with Bob

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { onAuthStateChanged, signInAnonymously, type User } from 'firebase/auth'
 import {
   addDoc,
   collection,
@@ -11,7 +12,7 @@ import {
 } from 'firebase/firestore'
 import { Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import './App.css'
-import { db, hasFirebaseEnv } from './lib/firebase'
+import { auth, db, hasFirebaseEnv } from './lib/firebase'
 import { getOrCreateAnonId, hashAnonId } from './utils/anonId'
 
 type Language = 'ja' | 'en'
@@ -29,7 +30,7 @@ type Post = {
   categories: CategoryKey[]
   language: Language
   createdAt: string
-  authorAnonIdHash: string
+  authorUid: string
 }
 
 type FirestorePost = {
@@ -37,7 +38,7 @@ type FirestorePost = {
   categories?: string[]
   language: Language
   createdAt?: Timestamp
-  authorAnonIdHash: string
+  authorUid: string
 }
 
 const categoryLabels: Record<Language, Record<CategoryKey, string>> = {
@@ -117,7 +118,7 @@ const samplePosts: Post[] = [
     categories: ['whereToLive', 'life'],
     language: 'ja',
     createdAt: '2023-12-01T00:00:00.000Z',
-    authorAnonIdHash: 'me',
+    authorUid: 'me',
   },
   {
     id: '2',
@@ -125,7 +126,7 @@ const samplePosts: Post[] = [
     categories: ['career', 'life'],
     language: 'en',
     createdAt: '2022-08-19T00:00:00.000Z',
-    authorAnonIdHash: 'other',
+    authorUid: 'other',
   },
   {
     id: '3',
@@ -133,7 +134,7 @@ const samplePosts: Post[] = [
     categories: ['relationships', 'life'],
     language: 'ja',
     createdAt: '2024-03-12T00:00:00.000Z',
-    authorAnonIdHash: 'me',
+    authorUid: 'me',
   },
 ]
 
@@ -187,6 +188,7 @@ function App() {
   const [selectedCategories, setSelectedCategories] = useState<CategoryKey[]>([])
   const [postToDelete, setPostToDelete] = useState<Post | null>(null)
   const [anonIdHash, setAnonIdHash] = useState<string | null>(null)
+  const [authUser, setAuthUser] = useState<User | null>(null)
   const [isUsingFirebase, setIsUsingFirebase] = useState(false)
 
   useEffect(() => {
@@ -197,6 +199,30 @@ function App() {
     }
 
     void prepareAnonId()
+  }, [])
+
+  useEffect(() => {
+    if (!auth || !hasFirebaseEnv) {
+      return
+    }
+
+    const currentAuth = auth
+
+    const unsubscribe = onAuthStateChanged(currentAuth, async (user) => {
+      if (user) {
+        setAuthUser(user)
+        return
+      }
+
+      try {
+        const credential = await signInAnonymously(currentAuth)
+        setAuthUser(credential.user)
+      } catch (error) {
+        console.error('Failed to sign in anonymously.', error)
+      }
+    })
+
+    return () => unsubscribe()
   }, [])
 
   useEffect(() => {
@@ -220,7 +246,7 @@ function App() {
             ),
             language: data.language,
             createdAt: data.createdAt?.toDate().toISOString() ?? new Date().toISOString(),
-            authorAnonIdHash: data.authorAnonIdHash,
+            authorUid: data.authorUid,
           }
         })
 
@@ -237,9 +263,14 @@ function App() {
 
   const t = copy[language]
   const myPosts = useMemo(() => {
+    if (isUsingFirebase) {
+      if (!authUser) return []
+      return posts.filter((post) => post.authorUid === authUser.uid)
+    }
+
     if (!anonIdHash) return []
-    return posts.filter((post) => post.authorAnonIdHash === anonIdHash)
-  }, [anonIdHash, posts])
+    return posts.filter((post) => post.authorUid === anonIdHash)
+  }, [anonIdHash, authUser, isUsingFirebase, posts])
 
   const timelinePosts = useMemo(() => [...posts], [posts])
 
@@ -261,17 +292,17 @@ function App() {
       categories: selectedCategories,
       language,
       createdAt: new Date().toISOString(),
-      authorAnonIdHash: anonIdHash,
+      authorUid: authUser?.uid ?? anonIdHash,
     }
 
-    if (db && hasFirebaseEnv) {
+    if (db && hasFirebaseEnv && authUser) {
       try {
         const docRef = await addDoc(collection(db, 'posts'), {
           content: nextPost.content,
           categories: nextPost.categories,
           language: nextPost.language,
           createdAt: Timestamp.fromDate(new Date(nextPost.createdAt)),
-          authorAnonIdHash: nextPost.authorAnonIdHash,
+          authorUid: nextPost.authorUid,
         })
 
         nextPost.id = docRef.id
