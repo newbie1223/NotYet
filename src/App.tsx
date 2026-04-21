@@ -288,7 +288,16 @@ function App() {
     return posts.filter((post) => post.authorUid === anonIdHash)
   }, [anonIdHash, authUser, isUsingFirebase, posts])
 
-  const timelinePosts = useMemo(() => [...posts], [posts])
+  const timelinePosts = useMemo(() => {
+    const shuffled = [...posts]
+
+    for (let index = shuffled.length - 1; index > 0; index -= 1) {
+      const randomIndex = Math.floor(Math.random() * (index + 1))
+      ;[shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]]
+    }
+
+    return shuffled
+  }, [posts])
 
   const toggleCategory = (category: CategoryKey) => {
     setSelectedCategories((current) =>
