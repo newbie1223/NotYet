@@ -12,6 +12,7 @@ a {
 }
 
 .page {
+  width: min(100%, 720px);
   max-width: 720px;
   margin: 0 auto;
   min-height: 100vh;
@@ -96,13 +97,16 @@ a {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-width: 0;
 }
 
 .post-card {
+  min-width: 0;
   border: 1px solid #e7e0d8;
   border-radius: 24px;
   padding: 20px;
   background: rgba(255, 255, 255, 0.72);
+  overflow-wrap: anywhere;
 }
 
 .managed-post-card {
@@ -111,9 +115,10 @@ a {
 
 .post-content {
   margin: 0 0 12px;
-  font-size: 1.25rem;
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
   line-height: 1.5;
   color: #161411;
+  overflow-wrap: anywhere;
 }
 
 .post-hold {
@@ -164,9 +169,35 @@ a {
   border: 0;
   background: #161411;
   color: #f6f1eb;
-  font-size: 2rem;
-  line-height: 1;
   box-shadow: 0 16px 40px rgba(22, 20, 17, 0.18);
+}
+
+.fab-icon {
+  position: relative;
+  display: block;
+  width: 22px;
+  height: 22px;
+}
+
+.fab-icon::before,
+.fab-icon::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: currentColor;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+
+.fab-icon::before {
+  width: 22px;
+  height: 2px;
+}
+
+.fab-icon::after {
+  width: 2px;
+  height: 22px;
 }
 
 .page-create {
@@ -203,8 +234,10 @@ a {
 }
 
 .category-select {
+  max-width: 100%;
   padding: 10px 16px;
   background: transparent;
+  overflow-wrap: anywhere;
 }
 
 .category-select.is-selected {
@@ -268,6 +301,7 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
 .delete-button {
@@ -286,6 +320,8 @@ a {
 
 .dialog {
   width: min(100%, 480px);
+  max-height: min(80vh, 640px);
+  overflow: auto;
   border-radius: 28px;
   background: #fffaf5;
   padding: 24px;
@@ -314,6 +350,131 @@ a {
 .danger-button {
   background: #8b5348;
   color: #fffaf5;
+}
+
+@media (max-width: 767px) {
+  .topbar,
+  .subpage-topbar,
+  .manage-topbar {
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .hero {
+    margin-bottom: 32px;
+  }
+
+  .hero h1 {
+    max-width: 10ch;
+    font-size: clamp(2rem, 12vw, 3.5rem);
+    line-height: 1.06;
+  }
+
+  .post-card {
+    border-radius: 20px;
+    padding: 18px;
+  }
+
+  .composer {
+    padding-top: 32px;
+  }
+
+  .composer-input {
+    padding-bottom: 14px;
+    font-size: clamp(1.35rem, 8vw, 2.1rem);
+  }
+
+  .submit-bar {
+    padding-top: 12px;
+  }
+
+  .dialog-backdrop {
+    padding: 12px;
+  }
+
+  .dialog {
+    border-radius: 24px;
+    padding: 20px;
+  }
+
+  .dialog-actions {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 520px) {
+  .page {
+    padding: 18px 16px 104px;
+  }
+
+  .topbar,
+  .subpage-topbar,
+  .manage-topbar {
+    flex-direction: column;
+  }
+
+  .topbar {
+    margin-bottom: 32px;
+  }
+
+  .topbar-actions {
+    width: 100%;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .language-switch {
+    flex-wrap: wrap;
+  }
+
+  .hero h1 {
+    max-width: none;
+  }
+
+  .hero-note,
+  .manage-note,
+  .helper-text,
+  .create-note,
+  .empty-state,
+  .post-date,
+  .post-hold {
+    font-size: 0.92rem;
+  }
+
+  .post-card {
+    padding: 16px;
+  }
+
+  .category-list {
+    gap: 10px;
+    margin-top: 24px;
+  }
+
+  .category-select {
+    width: 100%;
+    text-align: left;
+  }
+
+  .fab,
+  .fab-link {
+    right: 16px;
+    bottom: 16px;
+    width: 58px;
+    height: 58px;
+  }
+
+  .fab-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .fab-icon::before {
+    width: 20px;
+  }
+
+  .fab-icon::after {
+    height: 20px;
+  }
 }
 
 @media (min-width: 768px) {

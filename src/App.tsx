@@ -482,7 +482,7 @@ function HomePage({
       </section>
 
       <Link aria-label="Create post" className="fab fab-link" to="/create">
-        {t.addPost}
+        <span aria-hidden="true" className="fab-icon" />
       </Link>
     </main>
   )
