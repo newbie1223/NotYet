@@ -1,0 +1,8 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="256" height="256" rx="64" fill="#161411"/>
+  <rect x="36" y="36" width="184" height="184" rx="48" fill="#F6F1EB"/>
+  <path d="M84 176V80H100L156 153V80H172V176H156L100 103V176H84Z" fill="#161411"/>
+  <path d="M176 72C176 88.5685 162.569 102 146 102H126V72H176Z" fill="#D8CEC3"/>
+</svg>
+
+<!-- Made with Bob -->
