@@ -68,3 +68,6 @@ temp
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
+
+# 内部設計・ソース解説
+docs
