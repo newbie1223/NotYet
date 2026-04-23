@@ -215,7 +215,7 @@ a {
   border: 0;
   border-bottom: 1px solid #d8cec3;
   padding: 0 0 16px;
-  font-size: clamp(1.5rem, 5vw, 2.5rem);
+  font-size: clamp(1.35rem, 4.2vw, 2.5rem);
   line-height: 1.4;
   background: transparent;
   color: #161411;
@@ -381,7 +381,7 @@ a {
 
   .composer-input {
     padding-bottom: 14px;
-    font-size: clamp(1.35rem, 8vw, 2.1rem);
+    font-size: clamp(1.1rem, 6vw, 1.6rem);
   }
 
   .submit-bar {
@@ -443,6 +443,11 @@ a {
 
   .post-card {
     padding: 16px;
+  }
+
+  .composer-input {
+    padding-bottom: 12px;
+    font-size: clamp(0.92rem, 4.8vw, 1.1rem);
   }
 
   .category-list {
